@@ -13,8 +13,11 @@ end
 -- 1. [x] TODODONE: <c-s-n> error on single (, no big deal
 -- 2. [ ] TODO: <c-.> not working, deal to inputmethod
 
-M.hl_cursorword = { bg = '#338822', fg = '#eeff11', reverse = false, bold = true, }
-M.hl_lastcursorword = { fg = '#aaaa00', bg = '#773399', reverse = false, bold = true, }
+-- M.hl_cursorword = { bg = '#338822', fg = '#eeff11', reverse = false, bold = true, }
+-- M.hl_lastcursorword = { fg = '#aaaa00', bg = '#773399', reverse = false, bold = true, }
+
+M.hl_cursorword = { reverse = true, bold = true, }
+M.hl_lastcursorword = { reverse = true, bold = false, }
 
 M.HiLi = {}
 
