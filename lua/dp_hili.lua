@@ -477,6 +477,21 @@ B.aucmd({ 'CursorHold', 'CursorHoldI', 'CursorMoved', 'CursorMovedI', }, 'my.hil
   end,
 })
 
+B.aucmd({ 'InsertLeave', }, 'my.hili.InsertLeave', {
+  callback = function(ev)
+    M.hicurword = M.hicurword_back
+    M.on_cursormoved(ev)
+  end,
+})
+
+B.aucmd({ 'InsertEnter', }, 'my.hili.InsertEnter', {
+  callback = function(ev)
+    M.hicurword_back = M.hicurword
+    M.hicurword = nil
+    M.on_cursormoved(ev)
+  end,
+})
+
 B.aucmd({ 'ColorScheme', }, 'my.hili.ColorScheme', {
   callback = function()
     M.on_colorscheme()
