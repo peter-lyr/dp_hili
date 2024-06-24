@@ -481,6 +481,7 @@ B.aucmd({ 'InsertLeave', }, 'my.hili.InsertLeave', {
   callback = function(ev)
     M.hicurword = M.hicurword_back
     M.on_cursormoved(ev)
+    M.hili_lastcursorword(M.lastcword)
   end,
 })
 
@@ -489,6 +490,9 @@ B.aucmd({ 'InsertEnter', }, 'my.hili.InsertEnter', {
     M.hicurword_back = M.hicurword
     M.hicurword = nil
     M.on_cursormoved(ev)
+    for _, i in ipairs(M.last_hls) do
+      M.rmhili_do(i)
+    end
   end,
 })
 
