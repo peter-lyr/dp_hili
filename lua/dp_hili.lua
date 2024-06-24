@@ -393,6 +393,9 @@ function M.hili_lastcursorword(word)
     M.rmhili_do(i)
   end
   M.lastcword = M.two_cwords[1]
+  if not M.lastcword then
+    return
+  end
   local w = M.border(M.lastcword)
   M.hili_do(w, M.hl_lastcursorword)
   M.last_hls[#M.last_hls + 1] = w
