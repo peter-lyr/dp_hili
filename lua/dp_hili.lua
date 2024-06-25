@@ -467,8 +467,25 @@ end
 
 M.on_colorscheme()
 
-B.aucmd({ 'CursorHold', 'CursorHoldI', 'CursorMoved', 'CursorMovedI', }, 'my.hili.CursorMoved', {
+B.aucmd({ 'CursorMoved', 'CursorMovedI', }, 'my.hili.CursorMoved', {
   callback = function(ev)
+    if not M.cursormoved_flag then
+      M.hicurword_back = M.hicurword
+    end
+    M.hicurword = nil
+    M.cursormoved_flag = 1
+    M.on_cursormoved(ev)
+    for _, i in ipairs(M.last_hls) do
+      M.rmhili_do(i)
+    end
+  end,
+})
+
+B.aucmd({ 'CursorHold', 'CursorHoldI', }, 'my.hili.CursorHold', {
+  callback = function(ev)
+    M.cursormoved_flag = nil
+    M.hicurword = M.hicurword_back
+    print("M.hicurword_back:", M.hicurword_back)
     if M.cursorword_lock then
       return
     end
