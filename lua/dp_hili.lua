@@ -485,7 +485,6 @@ B.aucmd({ 'CursorHold', 'CursorHoldI', }, 'my.hili.CursorHold', {
   callback = function(ev)
     M.cursormoved_flag = nil
     M.hicurword = M.hicurword_back
-    print("M.hicurword_back:", M.hicurword_back)
     if M.cursorword_lock then
       return
     end
