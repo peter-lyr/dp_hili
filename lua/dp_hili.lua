@@ -449,16 +449,16 @@ function M.windocursorword()
   M.on_cursormoved { buf = vim.fn.bufnr(), }
 end
 
-function M.cursorword()
-  if M.hicurword then
-    M.hicurword = nil
-    B.notify_info 'do not cursorword'
-  else
-    M.hicurword = 1
-    B.notify_info 'cursorword'
-  end
-  M.on_cursormoved { buf = vim.fn.bufnr(), }
-end
+-- function M.cursorword()
+--   if M.hicurword then
+--     M.hicurword = nil
+--     B.notify_info 'do not cursorword'
+--   else
+--     M.hicurword = 1
+--     B.notify_info 'cursorword'
+--   end
+--   M.on_cursormoved { buf = vim.fn.bufnr(), }
+-- end
 
 function M.on_colorscheme()
   M.rehili()
@@ -467,11 +467,8 @@ end
 
 M.on_colorscheme()
 
-B.aucmd({ 'CursorMoved', 'CursorMovedI', }, 'my.hili.CursorMoved', {
+B.aucmd({ 'CursorMoved', }, 'my.hili.CursorMoved', {
   callback = function(ev)
-    if not M.cursormoved_flag then
-      M.hicurword_back = M.hicurword
-    end
     M.hicurword = nil
     M.cursormoved_flag = 1
     M.on_cursormoved(ev)
@@ -481,10 +478,10 @@ B.aucmd({ 'CursorMoved', 'CursorMovedI', }, 'my.hili.CursorMoved', {
   end,
 })
 
-B.aucmd({ 'CursorHold', 'CursorHoldI', }, 'my.hili.CursorHold', {
+B.aucmd({ 'CursorHold', }, 'my.hili.CursorHold', {
   callback = function(ev)
     M.cursormoved_flag = nil
-    M.hicurword = M.hicurword_back
+    M.hicurword = 1
     if M.cursorword_lock then
       return
     end
@@ -498,7 +495,7 @@ B.aucmd({ 'CursorHold', 'CursorHoldI', }, 'my.hili.CursorHold', {
 
 B.aucmd({ 'InsertLeave', }, 'my.hili.InsertLeave', {
   callback = function(ev)
-    M.hicurword = M.hicurword_back
+    M.hicurword = 1
     M.on_cursormoved(ev)
     M.hili_lastcursorword(M.lastcword)
   end,
@@ -506,7 +503,6 @@ B.aucmd({ 'InsertLeave', }, 'my.hili.InsertLeave', {
 
 B.aucmd({ 'InsertEnter', }, 'my.hili.InsertEnter', {
   callback = function(ev)
-    M.hicurword_back = M.hicurword
     M.hicurword = nil
     M.on_cursormoved(ev)
     for _, i in ipairs(M.last_hls) do
@@ -526,7 +522,7 @@ require 'which-key'.register {
   ['N'] = { function() M.search_prev() end, 'hili: search prev', mode = { 'n', 'v', }, silent = true, },
   ['*'] = { function() M.search() end, 'hili: multiline search', mode = { 'v', }, silent = true, },
   -- windo cursorword
-  ['<a-7>'] = { function() M.cursorword() end, 'hili: cursor word', mode = { 'n', }, silent = true, },
+  -- ['<a-7>'] = { function() M.cursorword() end, 'hili: cursor word', mode = { 'n', }, silent = true, },
   ['<a-8>'] = { function() M.windocursorword() end, 'hili: windo cursor word', mode = { 'n', }, silent = true, },
   -- cword hili
   ['<c-8>'] = { function() M.hili_v() end, 'hili: cword', mode = { 'v', }, silent = true, },
