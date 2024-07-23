@@ -13,11 +13,11 @@ end
 -- 1. [x] TODODONE: <c-s-n> error on single (, no big deal
 -- 2. [ ] TODO: <c-.> not working, deal to inputmethod
 
--- M.hl_cursorword = { bg = '#338822', fg = '#eeff11', reverse = false, bold = true, }
--- M.hl_lastcursorword = { fg = '#aaaa00', bg = '#773399', reverse = false, bold = true, }
-
 M.hl_cursorword = { reverse = true, bold = true, }
 M.hl_lastcursorword = { reverse = true, bold = false, }
+
+M.hl_cursorword_en = 0
+M.hl_lastcursorword_en = 0
 
 M.HiLi = {}
 
@@ -37,6 +37,8 @@ if not M.last_hls then
 end
 
 M.cursorword_lock = nil
+
+vim.api.nvim_set_hl(0, 'CursorWord', M.hl_cursorword)
 
 function M.gethiname(content)
   local sha256 = require 'sha2'
@@ -399,12 +401,22 @@ function M.hili_lastcursorword(word)
   local w = M.border(M.lastcword)
   M.hili_do(w, M.hl_lastcursorword)
   M.last_hls[#M.last_hls + 1] = w
+  if M.hl_lastcursorword_en == 0 then
+    for _, i in ipairs(M.last_hls) do
+      M.rmhili_do(i)
+    end
+  end
 end
 
 function M.on_cursormoved(ev)
   local filetype = vim.api.nvim_buf_get_option(ev.buf, 'filetype')
   if vim.tbl_contains(M.ignore_fts, filetype) == true then
     return
+  end
+  if M.hl_cursorword_en == 1 then
+    vim.api.nvim_set_hl(0, 'CursorWord', M.hl_cursorword)
+  else
+    vim.api.nvim_set_hl(0, 'CursorWord', { reverse = false, bold = false, })
   end
   local just_hicword = nil
   local word = vim.fn.expand '<cword>'
@@ -438,7 +450,7 @@ function M.on_cursormoved(ev)
   end
 end
 
-function M.windocursorword()
+function M.windocursorword_toggle()
   if M.windo then
     M.windo = nil
     B.notify_info 'do not windo match'
@@ -449,16 +461,24 @@ function M.windocursorword()
   M.on_cursormoved { buf = vim.fn.bufnr(), }
 end
 
--- function M.cursorword()
---   if M.hicurword then
---     M.hicurword = nil
---     B.notify_info 'do not cursorword'
---   else
---     M.hicurword = 1
---     B.notify_info 'cursorword'
---   end
---   M.on_cursormoved { buf = vim.fn.bufnr(), }
--- end
+function M.hlsearch_toggle()
+  if vim.o.hlsearch == false then
+    vim.o.hlsearch = true
+  else
+    vim.o.hlsearch = false
+  end
+  B.notify_info('vim.o.hlsearch: ' .. tostring(vim.o.hlsearch))
+end
+
+function M.cursorword_toggle()
+  M.hl_cursorword_en = 1 - M.hl_cursorword_en
+  B.notify_info('hl_cursorword_en: ' .. tostring(M.hl_cursorword_en))
+end
+
+function M.lastcursorword_toggle()
+  M.hl_lastcursorword_en = 1 - M.hl_lastcursorword_en
+  B.notify_info('hl_lastcursorword_en: ' .. tostring(M.hl_lastcursorword_en))
+end
 
 function M.on_colorscheme()
   M.rehili()
@@ -517,40 +537,55 @@ B.aucmd({ 'ColorScheme', }, 'my.hili.ColorScheme', {
   end,
 })
 
-require 'which-key'.register {
-  ['n'] = { function() M.search_next() end, 'hili: search next', mode = { 'n', 'v', }, silent = true, },
-  ['N'] = { function() M.search_prev() end, 'hili: search prev', mode = { 'n', 'v', }, silent = true, },
-  ['*'] = { function() M.search() end, 'hili: multiline search', mode = { 'v', }, silent = true, },
-  -- windo cursorword
-  -- ['<a-7>'] = { function() M.cursorword() end, 'hili: cursor word', mode = { 'n', }, silent = true, },
-  ['<a-8>'] = { function() M.windocursorword() end, 'hili: windo cursor word', mode = { 'n', }, silent = true, },
-  -- cword hili
-  ['<c-8>'] = { function() M.hili_v() end, 'hili: cword', mode = { 'v', }, silent = true, },
-  -- cword hili rm
-  ['<c-s-8>'] = { function() M.rmhili_v() end, 'hili: rm v', mode = { 'v', }, silent = true, },
-  -- select hili
-  ['<c-7>'] = { function() M.selnexthili() end, 'hili: sel next', mode = { 'n', 'v', }, silent = true, },
-  ['<c-s-7>'] = { function() M.selprevhili() end, 'hili: sel prev', mode = { 'n', 'v', }, silent = true, },
-  -- go hili
-  ['<c-n>'] = { function() M.prevhili() end, 'hili: go prev', mode = { 'n', 'v', }, silent = true, },
-  ['<c-m>'] = { function() M.nexthili() end, 'hili: go next', mode = { 'n', 'v', }, silent = true, },
-  -- go cur hili
-  ['<c-s-n>'] = { function() M.prevcurhili() end, 'hili: go cur prev', mode = { 'n', 'v', }, silent = true, },
-  ['<c-s-m>'] = { function() M.nextcurhili() end, 'hili: go cur next', mode = { 'n', 'v', }, silent = true, },
-  -- rehili
-  ['<c-s-9>'] = { function() M.rehili() end, 'hili: rehili', mode = { 'n', 'v', }, silent = true, },
-  -- search cword
-  ["<c-s-'>"] = { function() M.prevlastcword() end, 'hili: prevlastcword', mode = { 'n', 'v', }, silent = true, },
-  ['<c-s-/>'] = { function() M.nextlastcword() end, 'hili: nextlastcword', mode = { 'n', 'v', }, silent = true, },
-  ['<c-,>'] = { function() M.prevcword() end, 'hili: prevcword', mode = { 'n', 'v', }, silent = true, },
-  ['<c-.>'] = { function() M.nextcword() end, 'hili: nextcword', mode = { 'n', 'v', }, silent = true, },
-  ["<c-'>"] = { function() M.prevcWORD() end, 'hili: prevcWORD', mode = { 'n', 'v', }, silent = true, },
-  ['<c-/>'] = { function() M.nextcWORD() end, 'hili: nextcWORD', mode = { 'n', 'v', }, silent = true, },
-}
+if nil then
+  require 'which-key'.register {
+
+    ['n'] = { function() M.search_next() end, 'hili: search next', mode = { 'n', 'v', }, silent = true, },
+    ['N'] = { function() M.search_prev() end, 'hili: search prev', mode = { 'n', 'v', }, silent = true, },
+    ['*'] = { function() M.search() end, 'hili: multiline search', mode = { 'v', }, silent = true, },
+
+    -- cword hili
+    ['<c-8>'] = { function() M.hili_v() end, 'hili: cword', mode = { 'v', }, silent = true, },
+    -- cword hili rm
+    ['<c-s-8>'] = { function() M.rmhili_v() end, 'hili: rm v', mode = { 'v', }, silent = true, },
+
+    -- select hili
+    ['<c-7>'] = { function() M.selnexthili() end, 'hili: sel next', mode = { 'n', 'v', }, silent = true, },
+    ['<c-s-7>'] = { function() M.selprevhili() end, 'hili: sel prev', mode = { 'n', 'v', }, silent = true, },
+
+    -- go hili
+    ['<c-n>'] = { function() M.prevhili() end, 'hili: go prev', mode = { 'n', 'v', }, silent = true, },
+    ['<c-m>'] = { function() M.nexthili() end, 'hili: go next', mode = { 'n', 'v', }, silent = true, },
+
+    -- go cur hili
+    ['<c-s-n>'] = { function() M.prevcurhili() end, 'hili: go cur prev', mode = { 'n', 'v', }, silent = true, },
+    ['<c-s-m>'] = { function() M.nextcurhili() end, 'hili: go cur next', mode = { 'n', 'v', }, silent = true, },
+
+    -- rehili
+    ['<c-s-9>'] = { function() M.rehili() end, 'hili: rehili', mode = { 'n', 'v', }, silent = true, },
+
+    -- search cword
+    ["<c-s-'>"] = { function() M.prevlastcword() end, 'hili: prevlastcword', mode = { 'n', 'v', }, silent = true, },
+    ['<c-s-/>'] = { function() M.nextlastcword() end, 'hili: nextlastcword', mode = { 'n', 'v', }, silent = true, },
+    ['<c-,>'] = { function() M.prevcword() end, 'hili: prevcword', mode = { 'n', 'v', }, silent = true, },
+    ['<c-.>'] = { function() M.nextcword() end, 'hili: nextcword', mode = { 'n', 'v', }, silent = true, },
+    ["<c-'>"] = { function() M.prevcWORD() end, 'hili: prevcWORD', mode = { 'n', 'v', }, silent = true, },
+    ['<c-/>'] = { function() M.nextcWORD() end, 'hili: nextcWORD', mode = { 'n', 'v', }, silent = true, },
+
+  }
+
+  require 'which-key'.register {
+    ['<c-8>'] = { function() M.hili_n() end, 'hili: cword', mode = { 'n', }, silent = true, },
+    ['<c-s-8>'] = { function() M.rmhili_n() end, 'hili: rm n', mode = { 'n', }, silent = true, },
+  }
+end
 
 require 'which-key'.register {
-  ['<c-8>'] = { function() M.hili_n() end, 'hili: cword', mode = { 'n', }, silent = true, },
-  ['<c-s-8>'] = { function() M.rmhili_n() end, 'hili: rm n', mode = { 'n', }, silent = true, },
+  ['<leader>h'] = { name = 'hili.toggle', },
+  ['<leader>hh'] = { function() M.hlsearch_toggle() end, 'hili: hlsearch_toggle', mode = { 'n', }, silent = true, },
+  ['<leader>hc'] = { function() M.cursorword_toggle() end, 'hili: cursorword_toggle', mode = { 'n', }, silent = true, },
+  ['<leader>hl'] = { function() M.lastcursorword_toggle() end, 'hili: lastcursorword_toggle', mode = { 'n', }, silent = true, },
+  ['<leader>hw'] = { function() M.windocursorword_toggle() end, 'hili: windocursorword_toggle', mode = { 'n', }, silent = true, },
 }
 
 return M
