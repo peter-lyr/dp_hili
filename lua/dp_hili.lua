@@ -18,6 +18,7 @@ M.hl_lastcursorword = { reverse = true, bold = false, }
 
 M.hl_cursorword_en = 0
 M.hl_lastcursorword_en = 0
+M.hl_cursorword_back_en = 0
 
 M.HiLi = {}
 
@@ -450,17 +451,6 @@ function M.on_cursormoved(ev)
   end
 end
 
-function M.windocursorword_toggle()
-  if M.windo then
-    M.windo = nil
-    B.notify_info 'do not windo match'
-  else
-    M.windo = 1
-    B.notify_info 'windo match'
-  end
-  M.on_cursormoved { buf = vim.fn.bufnr(), }
-end
-
 function M.hlsearch_toggle()
   if vim.o.hlsearch == false then
     vim.o.hlsearch = true
@@ -473,6 +463,20 @@ end
 function M.cursorword_toggle()
   M.hl_cursorword_en = 1 - M.hl_cursorword_en
   B.notify_info('hl_cursorword_en: ' .. tostring(M.hl_cursorword_en))
+end
+
+function M.windocursorword_toggle()
+  if M.windo then
+    M.windo = nil
+    M.hl_cursorword_en = M.hl_cursorword_back_en
+    B.notify_info 'do not windo match'
+  else
+    M.hl_cursorword_back_en = M.hl_cursorword_en
+    M.hl_cursorword_en = 1
+    M.windo = 1
+    B.notify_info 'windo match'
+  end
+  M.on_cursormoved { buf = vim.fn.bufnr(), }
 end
 
 function M.lastcursorword_toggle()
