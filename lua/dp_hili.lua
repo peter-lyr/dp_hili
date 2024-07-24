@@ -14,11 +14,11 @@ end
 -- 2. [ ] TODO: <c-.> not working, deal to inputmethod
 
 M.hl_cursorword = { reverse = true, bold = true, }
-M.hl_lastcursorword = { reverse = true, bold = false, }
+M.hl_lastcursorword = { bg = '#777777', bold = false, }
 
-M.hl_cursorword_en = 0
-M.hl_lastcursorword_en = 0
-M.hl_cursorword_back_en = 0
+M.hl_cursorword_en = 1
+M.hl_lastcursorword_en = 1
+M.hl_cursorword_back_en = 1
 
 M.HiLi = {}
 
