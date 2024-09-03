@@ -5,8 +5,8 @@ local sta, B = pcall(require, 'dp_base')
 if not sta then return print('Dp_base is required!', debug.getinfo(1)['source']) end
 
 if B.check_plugins {
-      'folke/which-key.nvim',
-    } then
+  'folke/which-key.nvim',
+} then
   return
 end
 
@@ -540,6 +540,11 @@ B.aucmd({ 'ColorScheme', }, 'my.hili.ColorScheme', {
     M.on_colorscheme()
   end,
 })
+
+require 'which-key'.register {
+  ['n'] = { function() M.search_next() end, 'hili: search next', mode = { 'n', 'v', }, silent = true, },
+  ['N'] = { function() M.search_prev() end, 'hili: search prev', mode = { 'n', 'v', }, silent = true, },
+}
 
 if nil then
   require 'which-key'.register {
